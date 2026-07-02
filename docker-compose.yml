@@ -3,45 +3,65 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
     volumes:
       - ${CONFIG_PATH}/jellyfin:/config
       - ${MEDIA_PATH}/movies:/data/movies
     ports:
-      - "${JELLYFIN_PORT}:8096"
+      # Stays open on the LAN (0.0.0.0) — smart TVs, phones, other devices
+      # on your network need to reach this one.
+      - "${JELLYFIN_PORT:-8096}:8096"
     restart: unless-stopped
     networks:
       - medianet
+    # Ryzen 5 5600 (6c/12t) + 32GB RAM: cap Jellyfin so a transcode can't
+    # eat the whole machine while you're gaming/using the PC for other things.
+    # 3 cores / 4GB is generous for 1-2 concurrent transcodes and leaves
+    # 3 cores + 28GB free for everything else on the box.
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 4G
+    # Note: for hardware-accelerated transcoding using the RTX 4060 (NVENC),
+    # Jellyfin needs GPU passthrough (--gpus or device reservations) plus the
+    # NVIDIA Container Toolkit on the host. Not included here since it's a
+    # separate setup step, but worth doing later — it drops CPU transcode
+    # load dramatically compared to software (libx264) transcoding.
 
   radarr:
     image: linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
     volumes:
       - ${CONFIG_PATH}/radarr:/config
       - ${MEDIA_PATH}:/data
     ports:
-      - "${RADARR_PORT}:7878"
+      # Loopback-only: admin UI, no reason for other LAN devices to hit it.
+      - "127.0.0.1:${RADARR_PORT:-7878}:7878"
     restart: unless-stopped
     networks:
       - medianet
+    depends_on:
+      - prowlarr
+      - qbittorrent
 
   prowlarr:
     image: linuxserver/prowlarr:latest
     container_name: prowlarr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
     volumes:
       - ${CONFIG_PATH}/prowlarr:/config
     ports:
-      - "${PROWLARR_PORT}:9696"
+      - "127.0.0.1:${PROWLARR_PORT:-9696}:9696"
     restart: unless-stopped
     networks:
       - medianet
@@ -50,15 +70,15 @@ services:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
       - WEBUI_PORT=8080
     volumes:
       - ${CONFIG_PATH}/qbittorrent:/config
       - ${MEDIA_PATH}/downloads:/data/downloads
     ports:
-      - "${QBITTORRENT_PORT}:8080"
+      - "127.0.0.1:${QBITTORRENT_PORT:-8080}:8080"
     restart: unless-stopped
     networks:
       - medianet
@@ -67,18 +87,21 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
     volumes:
       - ${CONFIG_PATH}/bazarr:/config
       - ${MEDIA_PATH}/movies:/data/movies
     ports:
-      - "${BAZARR_PORT}:6767"
+      - "127.0.0.1:${BAZARR_PORT:-6767}:6767"
     restart: unless-stopped
     networks:
       - medianet
+    depends_on:
+      - radarr
 
 networks:
   medianet:
     driver: bridge
+    name: medianet
