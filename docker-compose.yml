@@ -1,0 +1,84 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_PATH}/jellyfin:/config
+      - ${MEDIA_PATH}/movies:/data/movies
+    ports:
+      - "${JELLYFIN_PORT}:8096"
+    restart: unless-stopped
+    networks:
+      - medianet
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_PATH}/radarr:/config
+      - ${MEDIA_PATH}:/data
+    ports:
+      - "${RADARR_PORT}:7878"
+    restart: unless-stopped
+    networks:
+      - medianet
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_PATH}/prowlarr:/config
+    ports:
+      - "${PROWLARR_PORT}:9696"
+    restart: unless-stopped
+    networks:
+      - medianet
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${CONFIG_PATH}/qbittorrent:/config
+      - ${MEDIA_PATH}/downloads:/data/downloads
+    ports:
+      - "${QBITTORRENT_PORT}:8080"
+    restart: unless-stopped
+    networks:
+      - medianet
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_PATH}/bazarr:/config
+      - ${MEDIA_PATH}/movies:/data/movies
+    ports:
+      - "${BAZARR_PORT}:6767"
+    restart: unless-stopped
+    networks:
+      - medianet
+
+networks:
+  medianet:
+    driver: bridge
