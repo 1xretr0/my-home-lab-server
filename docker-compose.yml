@@ -13,6 +13,7 @@ services:
       # Stays open on the LAN (0.0.0.0) — smart TVs, phones, other devices
       # on your network need to reach this one.
       - "${JELLYFIN_PORT:-8096}:8096"
+      - "7359:7359/udp"
     restart: unless-stopped
     networks:
       - medianet
