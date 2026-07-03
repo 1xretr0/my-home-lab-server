@@ -20,11 +20,13 @@ You (browser) → Radarr → Prowlarr → Indexers (torrent sites)
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| Jellyfin | http://localhost:8096 | Stream movies to any device |
-| Radarr | http://localhost:7878 | Search and manage movies |
-| Prowlarr | http://localhost:9696 | Manage torrent indexers |
-| qBittorrent | http://localhost:8080 | Download torrents |
-| Bazarr | http://localhost:6767 | Auto-download subtitles |
+| Jellyfin | http://\<host-ip\>:8096 | Stream movies to any device (LAN-accessible) |
+| Radarr | http://localhost:7878 | Search and manage movies (localhost only) |
+| Prowlarr | http://localhost:9696 | Manage torrent indexers (localhost only) |
+| qBittorrent | http://localhost:8080 | Download torrents (localhost only) |
+| Bazarr | http://localhost:6767 | Auto-download subtitles (localhost only) |
+
+> **Note:** Only Jellyfin is exposed to the local network so other devices (TVs, phones) can reach it. All admin UIs are bound to `127.0.0.1` for security — access them from the host machine only.
 
 ## Prerequisites
 
@@ -236,7 +238,7 @@ All configurations, history, and media are preserved.
 ## Troubleshooting
 
 **Services can't communicate with each other**
-- Ensure all containers are on the same network: `docker network ls` should show `home-lab_medianet`
+- Ensure all containers are on the same network: `docker network ls` should show `medianet`
 - Use container names (not localhost) when configuring inter-service connections
 
 **Permission errors on media files**
