@@ -79,6 +79,8 @@ services:
       - ${MEDIA_PATH}/downloads:/data/downloads
     ports:
       - "127.0.0.1:${QBITTORRENT_PORT:-8080}:8080"
+      - "51413:51413/tcp"
+      - "51413:51413/udp"
     restart: unless-stopped
     networks:
       - medianet
