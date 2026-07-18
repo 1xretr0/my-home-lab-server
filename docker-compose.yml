@@ -9,6 +9,7 @@ services:
     volumes:
       - ${CONFIG_PATH}/jellyfin:/config
       - ${MEDIA_PATH}/movies:/data/movies
+      - ${MEDIA_PATH}/tv:/data/tv
     ports:
       # Stays open on the LAN (0.0.0.0) — smart TVs, phones, other devices
       # on your network need to reach this one.
@@ -44,6 +45,26 @@ services:
     ports:
       # Loopback-only: admin UI, no reason for other LAN devices to hit it.
       - "127.0.0.1:${RADARR_PORT:-7878}:7878"
+    restart: unless-stopped
+    networks:
+      - medianet
+    depends_on:
+      - prowlarr
+      - qbittorrent
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ${CONFIG_PATH}/sonnarr:/config
+      - ${MEDIA_PATH}:/data
+    ports:
+      # Loopback-only: admin UI, no reason for other LAN devices to hit it.
+      - "127.0.0.1:${SONARR_PORT:-8989}:8989"
     restart: unless-stopped
     networks:
       - medianet
@@ -95,6 +116,7 @@ services:
     volumes:
       - ${CONFIG_PATH}/bazarr:/config
       - ${MEDIA_PATH}/movies:/data/movies
+      - ${MEDIA_PATH}/tv:/data/tv
     ports:
       - "127.0.0.1:${BAZARR_PORT:-6767}:6767"
     restart: unless-stopped
